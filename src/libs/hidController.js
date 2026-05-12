@@ -3,6 +3,8 @@ import {
   bands,
   defaultBands,
   masterGain,
+  minMasterGain,
+  maxMasterGain,
   originalBands,
   originalMasterGain,
   productName,
@@ -11,6 +13,8 @@ import {
   setDeviceId,
   setIsConnected,
   setMasterGain,
+  setMinMasterGain,
+  setMaxMasterGain,
   setOriginalBands,
   setOriginalMasterGain,
   setProductName,
@@ -30,6 +34,8 @@ function resetDisconnectedUi() {
     setProductName();
     setDeviceId(null);
 
+    setMinMasterGain(-12);
+    setMaxMasterGain(12);
     setMasterGain(0);
     setBands(deepClone(defaultBands()));
   });
@@ -95,6 +101,8 @@ export async function connectDAC() {
       setDeviceId(driver.id);
       setDefaultBands(deepClone(driver.defaultBands));
       setBands(deepClone(driver.defaultBands));
+      setMinMasterGain(driver.minMasterGain ?? -12);
+      setMaxMasterGain(driver.maxMasterGain ?? 12);
       setMasterGain(0);
 
       setProductName(device.productName);
@@ -209,6 +217,6 @@ export async function saveToDAC() {
   if (!device || !driver) return alert("Not connected");
 
   setStatus("saving");
-  await driver.saveToDAC(device, bands);
+  await driver.saveToDAC(device, bands, masterGain());
   setStatus("saved");
 }
