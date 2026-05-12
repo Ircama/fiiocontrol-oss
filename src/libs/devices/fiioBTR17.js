@@ -4,7 +4,7 @@ import { sleep } from "../utils";
 export const fiioBTR17 = {
   id: "fiio-btr17",
   name: "FiiO BTR17",
-  filters: [{ vendorId: 0x2972 }], // any FiiO device
+  filters: [{ vendorId: 0x2972, productId: 136 }],
   reportId: 7,
   bandCount: 11,
   minMasterGain: -24,

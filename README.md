@@ -17,7 +17,7 @@
 
 > ⚠️ please use it at your own discretion! its not completely perfect
 
-currently only works with the fiio ja11 since thats the one i have
+currently supported: ja11 and btr17 [by LongXP](https://github.com/adithyasource/fiiocontrol-oss/pull/3)
 
 if you want me to implement controls for another dac, please open an issue or email me@adithya.zip
 

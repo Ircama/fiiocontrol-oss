@@ -11,7 +11,17 @@ import {
   sendMasterGain,
   syncPreview,
 } from "./libs/hidController";
-import { bands, isConnected, masterGain, minMasterGain, maxMasterGain, productName, setBands, setMasterGain, status } from "./libs/hidStore";
+import {
+  bands,
+  isConnected,
+  masterGain,
+  minMasterGain,
+  maxMasterGain,
+  productName,
+  setBands,
+  setMasterGain,
+  status,
+} from "./libs/hidStore";
 
 function App() {
   const [apiAvailable, setApiAvailable] = createSignal(true);
@@ -271,7 +281,19 @@ function App() {
           </button>
         </Show>
 
-        <p>the one supported device is the fiio jadeaudio ja11 since its the only one i have :]</p>
+        <p>
+          currently supported: ja11 and{" "}
+          <span class="tooltip-container">
+            btr17
+            <span class="tooltip tooltip-bottom">
+              by{" "}
+              <a href="https://github.com/adithyasource/fiiocontrol-oss/pull/3" target="_blank" class="bright-text">
+                <u>LongXP</u>
+              </a>
+            </span>
+          </span>
+        </p>
+
         <br />
         <p>
           if you want me to reverse engineer other dacs, please do let me know!{" "}
