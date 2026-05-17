@@ -25,33 +25,7 @@ import {
 
 function App() {
   const [apiAvailable, setApiAvailable] = createSignal(true);
-  const [trustData, setTrustData] = createSignal({
-    generatedAt: "2026-05-17T11:57:10.520Z",
-    bundleSha256: "9ad39c5119ee35e9789057a4687ae1140c99423ee3a6bef07c4240291a3e0a80",
-    assets: [
-      {
-        path: "Generation-Mono.otf",
-        sha256: "8d9f3d5bc84287b1215c1387c6f9a7c00ab575250fc1559751c6c78991f4a41b",
-      },
-      {
-        path: "assets/index-BtsQ2NLN.css",
-        sha256: "6d0f82e7ccb9957da4e6b2573530d983f706e0b72352af615c6f1dcd0c4aabd9",
-      },
-      {
-        path: "assets/index-D0ft0MsI.js",
-        sha256: "4f057c0b7524281f8f6c7a1ef7a443f23e596601a564111c73093ed02af4ecb2",
-      },
-      {
-        path: "favicon.svg",
-        sha256: "22bbdf7d229c85ecf331c4abeaf901d18d25fd21304a7a1833d5488cdfeb6470",
-      },
-      {
-        path: "index.html",
-        sha256: "6963b090978c3076f0cf5fbd88d28932febc8b21bdb43a6d7d162d819327e028",
-      },
-    ],
-    commitHash: "798df8eed1de3c534556808555d39c205884d17a",
-  });
+  const [trustData, setTrustData] = createSignal();
 
   try {
     navigator.hid.addEventListener("disconnect", handleDisconnect);

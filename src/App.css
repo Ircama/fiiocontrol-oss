@@ -25,7 +25,8 @@ html {
 }
 
 .tooltip {
-  max-width: 40rem;
+  max-width: 35rem;
+  overflow-wrap: break-word;
 }
 
 .title {
