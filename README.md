@@ -9,7 +9,8 @@
 </table>
 
 
-![website preview image](https://github.com/user-attachments/assets/d9badfe1-d76a-4161-942e-60d1d16a79f7)
+<img width="60%" height="auto" alt="image" src="https://github.com/user-attachments/assets/0842e352-ebec-4092-a9fd-20493b1946c3" />
+
 
 <br />
 <br />
