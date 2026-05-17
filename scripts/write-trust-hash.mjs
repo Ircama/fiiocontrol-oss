@@ -37,7 +37,7 @@ async function main() {
     generatedAt: new Date().toISOString(),
     bundleSha256,
     assets: manifest,
-    commitHash: process.env.WORKERS_CI_COMMIT_SHA,
+    commitHash: process.argv[2],
   };
 
   await writeFile(OUTPUT_FILE, `${JSON.stringify(trust, null, 2)}\n`);

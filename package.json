@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && node scripts/write-trust-hash.mjs",
+    "build": "vite build && node scripts/write-trust-hash.mjs $(git rev-parse HEAD)",
     "preview": "pnpm run build && wrangler dev",
     "deploy": "pnpm run build && wrangler deploy"
   },
