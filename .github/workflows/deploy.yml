@@ -1,7 +1,9 @@
 name: Trusted deploy to Cloudflare
 
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - main
 
 jobs:
   deploy:
