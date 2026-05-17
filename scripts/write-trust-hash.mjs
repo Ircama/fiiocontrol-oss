@@ -6,8 +6,6 @@ const DIST_DIR = path.resolve("dist");
 const OUTPUT_FILE = path.resolve("dist/trust.json");
 const IGNORED_FILES = new Set(["trust.json"]);
 
-console.log(`testing: ${process.env.WORKERS_CI_COMMIT_SHA}`);
-
 async function listFiles(dir) {
   const entries = await readdir(dir, { withFileTypes: true });
   const files = await Promise.all(
@@ -39,6 +37,7 @@ async function main() {
     generatedAt: new Date().toISOString(),
     bundleSha256,
     assets: manifest,
+    commitHash: process.env.WORKERS_CI_COMMIT_SHA,
   };
 
   await writeFile(OUTPUT_FILE, `${JSON.stringify(trust, null, 2)}\n`);
