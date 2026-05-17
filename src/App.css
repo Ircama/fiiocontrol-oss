@@ -24,6 +24,10 @@ html {
   font-size: 1rem;
 }
 
+.tooltip {
+  max-width: 40rem;
+}
+
 .title {
   font-family: "Generation Mono";
 }
@@ -320,13 +324,18 @@ tr td:nth-child(2) {
   text-align: right;
 }
 
-.email {
+.link {
   background-color: transparent;
   border: 0px;
   padding: 0px;
   margin: 0px;
   color: var(--bright-color);
   text-decoration: underline;
+}
+
+code {
+  color: var(--bright-color);
+  font-style: italic;
 }
 
 .bright-text {

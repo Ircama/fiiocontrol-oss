@@ -1,4 +1,4 @@
-import { createEffect, createMemo, createSignal, For, onCleanup, Show } from "solid-js";
+import { createEffect, createMemo, createSignal, For, onCleanup, onMount, Show } from "solid-js";
 import { BAND_ORDER, MAX_FREQ, MAX_GAIN, MIN_FREQ, SAMPLE_RATE } from "./libs/consts";
 import {
   connectDAC,
@@ -15,8 +15,8 @@ import {
   bands,
   isConnected,
   masterGain,
-  minMasterGain,
   maxMasterGain,
+  minMasterGain,
   productName,
   setBands,
   setMasterGain,
@@ -25,6 +25,32 @@ import {
 
 function App() {
   const [apiAvailable, setApiAvailable] = createSignal(true);
+  const [trustData, setTrustData] = createSignal({
+    generatedAt: "2026-05-17T10:01:05.872Z",
+    bundleSha256: "25da690cb59d87bc9a4ced00b42f7cf6f9ca97184200c9d0efaef9b970eab297",
+    assets: [
+      {
+        path: "Generation-Mono.otf",
+        sha256: "8d9f3d5bc84287b1215c1387c6f9a7c00ab575250fc1559751c6c78991f4a41b",
+      },
+      {
+        path: "assets/index-D33n77c-.js",
+        sha256: "ce474e8f9bf53257fea1aaeab88ad0b9a03728a58fe2b36b4d53f8fd73ea9e40",
+      },
+      {
+        path: "assets/index-UxdWAQyl.css",
+        sha256: "288e18ee2971264561863ce7596e14d831d13d4f7bd6a5cec310f158e09a680d",
+      },
+      {
+        path: "favicon.svg",
+        sha256: "22bbdf7d229c85ecf331c4abeaf901d18d25fd21304a7a1833d5488cdfeb6470",
+      },
+      {
+        path: "index.html",
+        sha256: "3f67228ca4edbcbc9434d1a66d7d1173018d10ad10ea585724750e7dfde37f06",
+      },
+    ],
+  });
 
   try {
     navigator.hid.addEventListener("disconnect", handleDisconnect);
@@ -238,6 +264,18 @@ function App() {
     return 10 * Math.log10(numMagSq / denMagSq);
   }
 
+  onMount(async () => {
+    try {
+      const response = await fetch("/trust.json", { cache: "no-store" });
+      if (!response.ok) return;
+
+      const trust = await response.json();
+      setTrustData(trust);
+    } catch (error) {
+      console.error("Failed to load trust.json", error);
+    }
+  });
+
   return (
     <div class="app-container">
       <div class="header">
@@ -259,6 +297,28 @@ function App() {
           <a href="https://ko-fi.com/adithyasource" class="secondary" target="_blank" rel="noopener">
             coffee?
           </a>
+
+          <span class="tooltip-container secondary">
+            trust [{trustData()?.bundleSha256.slice(0, 6) ?? "unknown"}]
+            <Show when={trustData()}>
+              <span class="tooltip tooltip-bottom">
+                <p>the current build hash is {trustData().bundleSha256}</p>
+                <p>
+                  it can be verified by pulling the code from{" "}
+                  <a
+                    href="https://github.com/adithyasource/fiiocontrol-oss"
+                    target="_blank"
+                    rel="noopener"
+                    class="link"
+                  >
+                    the source
+                  </a>{" "}
+                  and running <code>pnpm run build</code> which will produce a <code>dist/trust.json</code> with the
+                  same hash
+                </p>
+              </span>
+            </Show>
+          </span>
         </div>
       </div>
 
@@ -287,8 +347,8 @@ function App() {
             btr17
             <span class="tooltip tooltip-bottom">
               by{" "}
-              <a href="https://github.com/adithyasource/fiiocontrol-oss/pull/3" target="_blank" class="bright-text">
-                <u>LongXP</u>
+              <a href="https://github.com/adithyasource/fiiocontrol-oss/pull/3" target="_blank" class="link">
+                LongXP
               </a>
             </span>
           </span>
@@ -298,7 +358,7 @@ function App() {
         <p>
           if you want me to reverse engineer other dacs, please do let me know!{" "}
           <button
-            class="email"
+            class="link"
             type="button"
             onClick={async (e) => {
               e.preventDefault();
@@ -311,7 +371,7 @@ function App() {
         </p>
         <p>
           the project is open source on{" "}
-          <a href="https://github.com/adithyasource/fiiocontrol-oss" target="_blank" class="email">
+          <a href="https://github.com/adithyasource/fiiocontrol-oss" target="_blank" class="link">
             github
           </a>{" "}
           so if you face any issues or want to contribute, feel free to open an issue or pull request!

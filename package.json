@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && node scripts/write-trust-hash.mjs",
     "preview": "pnpm run build && wrangler dev",
     "deploy": "pnpm run build && wrangler deploy"
   },
@@ -15,6 +15,6 @@
   "devDependencies": {
     "vite": "^8.0.4",
     "vite-plugin-solid": "^2.11.12",
-    "wrangler": "^4.83.0"
+    "wrangler": "^4.92.0"
   }
 }
