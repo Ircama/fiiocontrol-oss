@@ -1,7 +1,5 @@
 # device drivers
 
-> ⚠️documentation for this was written using gpt 5.2. please exercise caution when following this
-
 a device driver is a small file that knows how to talk to a specific dac over webhid.
 
 this repo uses a simple driver interface (see `src/libs/devices/fiioJa11.js`). the generic controller (`src/libs/hidController.js`) will:
