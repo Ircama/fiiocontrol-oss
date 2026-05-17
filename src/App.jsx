@@ -298,7 +298,7 @@ function App() {
                     public GitHub repository
                   </a>
                   . users can independently verify integrity by building the same commit locally and comparing the
-                  sha-256 value in <code>dist/trust.json</code>.
+                  sha-256 value in <code>dist/trust.json</code>. tested on macos
                 </p>
                 <a
                   href="https://github.com/adithyasource/fiiocontrol-oss/actions/workflows/deploy.yml"
