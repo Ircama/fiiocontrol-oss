@@ -291,7 +291,11 @@ function App() {
                   and running <code>pnpm run build</code> which will produce a <code>dist/trust.json</code> with the
                   same hash
                 </p>
-                <p>the current commit hash is {trustData().commitHash ?? "unknown"}</p>
+                {trustData().commitHash ? (
+                  <p>the current commit hash is {trustData().commitHash}</p>
+                ) : (
+                  <p>manually deployed from latest commit</p>
+                )}
               </span>
             </Show>
           </span>
