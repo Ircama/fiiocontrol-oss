@@ -595,7 +595,7 @@ function App() {
         <p>
           if you want me to reverse engineer other dacs, please do let me know!{" "}
           <button
-            class="email"
+            class="link"
             type="button"
             onClick={async (e) => {
               e.preventDefault();
@@ -608,7 +608,7 @@ function App() {
         </p>
         <p>
           the project is open source on{" "}
-          <a href="https://github.com/adithyasource/fiiocontrol-oss" target="_blank" class="email">
+          <a href="https://github.com/adithyasource/fiiocontrol-oss" target="_blank" class="link">
             github
           </a>{" "}
           so if you face any issues or want to contribute, feel free to open an issue or pull request!
