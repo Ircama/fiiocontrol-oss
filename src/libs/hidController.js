@@ -22,6 +22,7 @@ import {
   status,
 } from "./hidStore";
 import { findDriverForDevice, getSupportedDeviceFilters } from "./devices";
+import { ConnectionMode, listRemoteDevices, openRemoteDevice } from "./remoteHID";
 import { deepClone } from "./utils";
 
 let device = null;
@@ -83,6 +84,8 @@ function handleInputReport(e) {
 }
 
 export async function connectDAC() {
+  if (ConnectionMode.mode === "remote") return;
+
   try {
     const filters = getSupportedDeviceFilters();
     const devices = await navigator.hid.requestDevice(filters.length ? { filters } : {});
@@ -117,6 +120,68 @@ export async function connectDAC() {
   } catch (err) {
     setStatus(`error: ${err.message}`);
   }
+}
+
+/** Close the active device (local or remote) and reset the UI. */
+export async function disconnectDevice() {
+  if (device) {
+    try {
+      device.removeEventListener?.("inputreport", handleInputReport);
+    } catch {}
+    try {
+      if (device.opened) await device.close();
+    } catch {}
+  }
+  device = null;
+  driver = null;
+  resetDisconnectedUi();
+}
+
+/** List supported HID devices available on a remote aura-bridged backend. */
+export async function listRemote(url) {
+  const devices = await listRemoteDevices(url);
+  return devices.filter((d) => findDriverForDevice(d));
+}
+
+/** Connect to a HID device on a remote aura-bridged backend over WebSocket. */
+export async function connectDACRemote(url, vendorId, productId) {
+  try {
+    await disconnectDevice();
+    device = await openRemoteDevice(vendorId, productId, url, handleRemoteClosed);
+    driver = findDriverForDevice(device);
+    if (!driver) {
+      try {
+        await device.close();
+      } catch {}
+      device = null;
+      setStatus("error: unsupported device");
+      return;
+    }
+
+    batch(() => {
+      setDeviceId(driver.id);
+      setDefaultBands(deepClone(driver.defaultBands));
+      setBands(deepClone(driver.defaultBands));
+      setMinMasterGain(driver.minMasterGain ?? -12);
+      setMaxMasterGain(driver.maxMasterGain ?? 12);
+      setMasterGain(0);
+
+      setProductName(device.productName);
+      setIsConnected(true);
+      setStatus("connected");
+    });
+
+    device.addEventListener("inputreport", handleInputReport);
+    await fetchAllData();
+  } catch (err) {
+    setStatus(`error: ${err.message}`);
+  }
+}
+
+function handleRemoteClosed() {
+  device = null;
+  driver = null;
+  resetDisconnectedUi();
 }
 
 export async function fetchAllData() {

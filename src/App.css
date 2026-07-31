@@ -68,6 +68,35 @@ body {
   flex-wrap: wrap;
 }
 
+/* connection mode toggle + remote backend panel */
+.conn-mode {
+  display: flex;
+  gap: 0.6rem;
+  margin-bottom: 0.8rem;
+}
+
+.remote-panel {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  max-width: 100%;
+}
+
+.remote-input {
+  min-width: 220px;
+}
+
+.remote-select {
+  min-width: 260px;
+}
+
+.remote-status {
+  color: var(--white-color);
+  font-size: 0.9em;
+  word-break: break-all;
+}
+
 .primary,
 .status {
   border: none;

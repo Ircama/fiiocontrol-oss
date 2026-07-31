@@ -2,15 +2,18 @@ import { createEffect, createMemo, createSignal, For, onCleanup, onMount, Show }
 import { BAND_ORDER, MAX_FREQ, MAX_GAIN, MIN_FREQ, SAMPLE_RATE } from "./libs/consts";
 import {
   connectDAC,
+  connectDACRemote,
   exportData,
   handleDisconnect,
   importData,
+  listRemote,
   resetToDefaults,
   resetToOriginal,
   saveToDAC,
   sendMasterGain,
   syncPreview,
 } from "./libs/hidController";
+import { ConnectionMode, DEFAULT_REMOTE_URL, RemotePrefs } from "./libs/remoteHID";
 import {
   bands,
   isConnected,
@@ -26,6 +29,11 @@ import {
 function App() {
   const [apiAvailable, setApiAvailable] = createSignal(true);
   const [trustData, setTrustData] = createSignal();
+  const [connMode, setConnMode] = createSignal(ConnectionMode.mode);
+  const [remoteUrl, setRemoteUrl] = createSignal(RemotePrefs.url);
+  const [remoteDevices, setRemoteDevices] = createSignal([]);
+  const [remoteSel, setRemoteSel] = createSignal("");
+  const [remoteStatus, setRemoteStatus] = createSignal("");
 
   try {
     navigator.hid.addEventListener("disconnect", handleDisconnect);
@@ -241,7 +249,7 @@ function App() {
 
   onMount(async () => {
     try {
-      const response = await fetch("/trust.json", { cache: "no-store" });
+      const response = await fetch(`${import.meta.env.BASE_URL}trust.json`, { cache: "no-store" });
       if (!response.ok) return;
 
       const trust = await response.json();
@@ -250,6 +258,42 @@ function App() {
       console.error("Failed to load trust.json", error);
     }
   });
+
+  function switchMode(mode) {
+    ConnectionMode.set(mode);
+    setConnMode(mode);
+  }
+
+  async function onListRemote() {
+    const url = remoteUrl().trim() || DEFAULT_REMOTE_URL;
+    RemotePrefs.url = url;
+    setRemoteStatus("listing devices...");
+    try {
+      const list = await listRemote(url);
+      setRemoteDevices(list);
+      setRemoteSel("");
+      setRemoteStatus(list.length ? `found ${list.length} supported device(s)` : "no supported device on backend");
+    } catch (err) {
+      setRemoteStatus(`error: ${err.message}`);
+    }
+  }
+
+  async function onConnectRemote() {
+    const url = remoteUrl().trim() || DEFAULT_REMOTE_URL;
+    const idx = remoteSel();
+    const dev = remoteDevices()[idx];
+    if (!dev) {
+      setRemoteStatus("select a device first");
+      return;
+    }
+    setRemoteStatus("connecting...");
+    try {
+      await connectDACRemote(url, dev.vendorId, dev.productId);
+      setRemoteStatus("connected");
+    } catch (err) {
+      setRemoteStatus(`error: ${err.message}`);
+    }
+  }
 
   return (
     <div class="app-container">
@@ -320,7 +364,7 @@ function App() {
         <br />
         <br />
         <Show
-          when={apiAvailable()}
+          when={apiAvailable() || connMode() === "remote"}
           fallback={
             <p class="bright-text">
               this website is only supported on a desktop browser based on chromium 117+ (google chrome, edge, brave,
@@ -330,9 +374,64 @@ function App() {
             </p>
           }
         >
-          <button id="connect-device" class="primary" type="button" onClick={connectDAC}>
-            connect device
-          </button>
+          <div class="conn-mode">
+            <button
+              class="secondary"
+              classList={{ primary: connMode() === "local" }}
+              type="button"
+              onClick={() => switchMode("local")}
+            >
+              local (webhid)
+            </button>
+            <button
+              class="secondary"
+              classList={{ primary: connMode() === "remote" }}
+              type="button"
+              onClick={() => switchMode("remote")}
+            >
+              remote (websocket)
+            </button>
+          </div>
+          <Show
+            when={connMode() === "local"}
+            fallback={
+              <div class="remote-panel">
+                <input
+                  class="secondary remote-input"
+                  type="text"
+                  value={remoteUrl()}
+                  onInput={(e) => setRemoteUrl(e.target.value)}
+                  placeholder="ws://host:9001"
+                  spellcheck={false}
+                />
+                <button class="secondary" type="button" onClick={onListRemote}>
+                  list devices
+                </button>
+                <select
+                  class="secondary remote-select"
+                  value={remoteSel()}
+                  onChange={(e) => setRemoteSel(e.target.value)}
+                >
+                  <option value="">-- select a device --</option>
+                  <For each={remoteDevices()}>
+                    {(d, i) => (
+                      <option value={i()}>
+                        {d.productName} (0x{d.vendorId.toString(16)}:{d.productId.toString(16)})
+                      </option>
+                    )}
+                  </For>
+                </select>
+                <button class="primary" type="button" onClick={onConnectRemote} disabled={remoteSel() === ""}>
+                  connect remote
+                </button>
+                <span class="remote-status">{remoteStatus()}</span>
+              </div>
+            }
+          >
+            <button id="connect-device" class="primary" type="button" onClick={connectDAC}>
+              connect device
+            </button>
+          </Show>
         </Show>
 
         <p>
