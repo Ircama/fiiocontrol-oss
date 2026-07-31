@@ -264,17 +264,30 @@ function App() {
     setConnMode(mode);
   }
 
+  function mixedContentHint(url) {
+    const isHttps = typeof window !== "undefined" && window.location.protocol === "https:";
+    const insecureLan =
+      /^ws:\/\//i.test(url) && !/^ws:\/\/(localhost|127\.0\.0\.1|\[::1\])/i.test(url);
+    return isHttps && insecureLan
+      ? " — note: this HTTPS page may be blocked from connecting to an insecure ws:// LAN backend (mixed content); use wss:// or run the app locally over http"
+      : "";
+  }
+
   async function onListRemote() {
     const url = remoteUrl().trim() || DEFAULT_REMOTE_URL;
     RemotePrefs.url = url;
     setRemoteStatus("listing devices...");
     try {
-      const list = await listRemote(url);
-      setRemoteDevices(list);
+      const { all, supported } = await listRemote(url);
+      setRemoteDevices(supported);
       setRemoteSel("");
-      setRemoteStatus(list.length ? `found ${list.length} supported device(s)` : "no supported device on backend");
+      setRemoteStatus(
+        supported.length
+          ? `found ${supported.length} supported device(s)`
+          : `no supported device on backend (backend lists ${all.length} device(s))`,
+      );
     } catch (err) {
-      setRemoteStatus(`error: ${err.message}`);
+      setRemoteStatus(`error: ${err.message}${mixedContentHint(url)}`);
     }
   }
 
@@ -291,7 +304,7 @@ function App() {
       await connectDACRemote(url, dev.vendorId, dev.productId);
       setRemoteStatus("connected");
     } catch (err) {
-      setRemoteStatus(`error: ${err.message}`);
+      setRemoteStatus(`error: ${err.message}${mixedContentHint(url)}`);
     }
   }
 

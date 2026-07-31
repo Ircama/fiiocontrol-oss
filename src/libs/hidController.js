@@ -139,8 +139,9 @@ export async function disconnectDevice() {
 
 /** List supported HID devices available on a remote aura-bridged backend. */
 export async function listRemote(url) {
-  const devices = await listRemoteDevices(url);
-  return devices.filter((d) => findDriverForDevice(d));
+  const all = await listRemoteDevices(url);
+  const supported = all.filter((d) => findDriverForDevice(d));
+  return { all, supported };
 }
 
 /** Connect to a HID device on a remote aura-bridged backend over WebSocket. */
