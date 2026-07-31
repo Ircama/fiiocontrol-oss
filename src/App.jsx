@@ -15,6 +15,7 @@ import {
   syncPreview,
 } from "./libs/hidController";
 import { ConnectionMode, DEFAULT_REMOTE_URL, RemotePrefs } from "./libs/remoteHID";
+import { clearLog, logEntries, logInfo } from "./libs/logStore";
 import {
   bands,
   isConnected,
@@ -58,6 +59,15 @@ function App() {
     if (status() === "synced" && isConnected()) {
       clearTimeout(previewTimeout);
       previewTimeout = setTimeout(syncPreview, 250);
+    }
+  });
+
+  // Auto-scroll the log window as new entries arrive.
+  let logBoxRef;
+  createEffect(() => {
+    const entries = logEntries();
+    if (logBoxRef && entries.length) {
+      logBoxRef.scrollTop = logBoxRef.scrollHeight;
     }
   });
 
@@ -264,6 +274,7 @@ function App() {
     disconnectDevice();
     ConnectionMode.set(mode);
     setConnMode(mode);
+    logInfo(mode === "remote" ? "Switched to Remote (WebSocket) mode." : "Switched to USB (WebHID) mode.");
   }
 
   function mixedContentHint(url) {
@@ -733,6 +744,25 @@ function App() {
 
         <br />
       </Show>
+
+      <section class="log-section">
+        <div class="log-header">
+          <span>{connMode() === "remote" ? "Remote USB Log" : "USB Log"}</span>
+          <button class="secondary" type="button" onClick={() => clearLog()}>
+            clear
+          </button>
+        </div>
+        <div ref={logBoxRef} class="log-box">
+          <For each={logEntries()}>
+            {(e) => (
+              <div class={`log-entry ${e.kind}`}>
+                <span class="log-ts">[{e.ts}]</span>
+                {e.msg}
+              </div>
+            )}
+          </For>
+        </div>
+      </section>
     </div>
   );
 }

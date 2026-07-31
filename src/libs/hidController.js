@@ -23,10 +23,44 @@ import {
 } from "./hidStore";
 import { findDriverForDevice, getSupportedDeviceFilters } from "./devices";
 import { ConnectionMode, listRemoteDevices, openRemoteDevice } from "./remoteHID";
+import { logError, logInfo, logRx, logTx, logWarn } from "./logStore";
 import { deepClone } from "./utils";
 
 let device = null;
 let driver = null;
+
+// Wrap the device send methods so every TX is recorded in the log window.
+const loggedDevices = new WeakSet();
+function wrapDeviceLogging(dev) {
+  if (!dev || typeof dev.sendReport !== "function" || loggedDevices.has(dev)) return;
+  try {
+    const origSend = dev.sendReport.bind(dev);
+    dev.sendReport = async (reportId, data) => {
+      logTx(reportId, data);
+      try {
+        return await origSend(reportId, data);
+      } catch (err) {
+        logError("TX failed: " + err.message);
+        throw err;
+      }
+    };
+    if (typeof dev.sendFeatureReport === "function") {
+      const origFeature = dev.sendFeatureReport.bind(dev);
+      dev.sendFeatureReport = async (reportId, data) => {
+        logTx(reportId, data);
+        try {
+          return await origFeature(reportId, data);
+        } catch (err) {
+          logError("TX failed: " + err.message);
+          throw err;
+        }
+      };
+    }
+    loggedDevices.add(dev);
+  } catch {
+    // Some platform objects may not be extensible; skip logging then.
+  }
+}
 
 function resetDisconnectedUi() {
   batch(() => {
@@ -53,6 +87,7 @@ export function handleDisconnect(e) {
     device = null;
     driver = null;
 
+    logWarn("Device disconnected.");
     resetDisconnectedUi();
   }
 }
@@ -60,6 +95,7 @@ export function handleDisconnect(e) {
 function handleInputReport(e) {
   if (!driver) return;
 
+  logRx(e.reportId, new Uint8Array(e.data.buffer));
   const msg = driver.parseInputReport(new Uint8Array(e.data.buffer));
   if (!msg) return;
 
@@ -96,6 +132,7 @@ export async function connectDAC() {
     driver = findDriverForDevice(device);
     if (!driver) {
       device = null;
+      logError("Device not supported yet.");
       alert("your device isn't supported yet :(");
       return;
     }
@@ -113,11 +150,14 @@ export async function connectDAC() {
       setStatus("connected");
     });
 
+    wrapDeviceLogging(device);
     await device.open();
     device.addEventListener("inputreport", handleInputReport);
+    logInfo(`Connected to: ${device.productName}`);
 
     await fetchAllData();
   } catch (err) {
+    logError(`Connect failed: ${err.message}`);
     setStatus(`error: ${err.message}`);
   }
 }
@@ -133,8 +173,7 @@ export async function disconnectDevice() {
     } catch {}
   }
   device = null;
-  driver = null;
-  resetDisconnectedUi();
+  driver = null;  logInfo("Disconnected by user.");  resetDisconnectedUi();
 }
 
 /** List supported HID devices available on a remote aura-bridged backend. */
@@ -172,9 +211,12 @@ export async function connectDACRemote(url, vendorId, productId) {
       setStatus("connected");
     });
 
+    wrapDeviceLogging(device);
     device.addEventListener("inputreport", handleInputReport);
+    logInfo(`Connected to: ${device.productName} (remote ${url})`);
     await fetchAllData();
   } catch (err) {
+    logError(`Connect failed: ${err.message}`);
     setStatus(`error: ${err.message}`);
   }
 }
@@ -182,6 +224,7 @@ export async function connectDACRemote(url, vendorId, productId) {
 function handleRemoteClosed() {
   device = null;
   driver = null;
+  logWarn("Remote connection closed.");
   resetDisconnectedUi();
 }
 

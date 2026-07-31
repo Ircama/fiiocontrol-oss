@@ -68,6 +68,46 @@ body {
   flex-wrap: wrap;
 }
 
+/* execution / usb log window */
+.log-section {
+  margin-top: 1.5rem;
+}
+
+.log-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.4rem;
+}
+
+.log-box {
+  background: #09090c;
+  border: 1px solid #333;
+  border-radius: 4px;
+  padding: 10px 14px;
+  font-family: "Consolas", "Fira Code", monospace;
+  font-size: 11px;
+  height: 160px;
+  overflow-y: auto;
+  color: #bbb;
+}
+
+.log-entry {
+  padding: 1px 0;
+  word-break: break-all;
+}
+
+.log-entry.tx   { color: #5fbfff; }
+.log-entry.rx   { color: var(--green-color); }
+.log-entry.err  { color: #ff6b6b; }
+.log-entry.warn { color: #e5c07b; }
+.log-entry.inf  { color: #999; }
+
+.log-ts {
+  color: #666;
+  margin-right: 6px;
+}
+
 /* connection mode toggle + remote backend panel */
 .conn-mode {
   display: flex;
