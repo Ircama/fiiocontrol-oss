@@ -3,6 +3,7 @@ import { BAND_ORDER, MAX_FREQ, MAX_GAIN, MIN_FREQ, SAMPLE_RATE } from "./libs/co
 import {
   connectDAC,
   connectDACRemote,
+  disconnectDevice,
   exportData,
   handleDisconnect,
   importData,
@@ -260,6 +261,7 @@ function App() {
   });
 
   function switchMode(mode) {
+    disconnectDevice();
     ConnectionMode.set(mode);
     setConnMode(mode);
   }
@@ -513,6 +515,9 @@ function App() {
           </button>
           <button onClick={saveToDAC} type="button" class="primary">
             write and exit
+          </button>
+          <button onClick={disconnectDevice} type="button" class="secondary" disabled={!isConnected()}>
+            disconnect
           </button>
         </div>
       </div>
