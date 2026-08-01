@@ -187,14 +187,34 @@ function App() {
   }
 
   const eqPath = createMemo(() => {
+    // Weighted-average EQ curve using per-band filter shapes (reflects type + Q)
+    const shapeGain = (f) => {
+      let wSum = 0, gainSum = 0;
+      for (let i = 0; i < bands.length; i++) {
+        const b = bands[i];
+        if (!b.gain) continue;
+        const r  = f / b.freq;
+        const lg = Math.log2(r);
+        let w;
+        if (b.type === "PK") {
+          const bw = 1 / b.q;
+          w = Math.exp(-(lg * lg) / (2 * bw * bw));
+        } else if (b.type === "LSC" || b.type === "LSQ") {
+          w = 1 / (1 + Math.pow(r,   4 * Math.sqrt(b.q)));
+        } else if (b.type === "HSC" || b.type === "HSQ") {
+          w = 1 / (1 + Math.pow(1/r, 4 * Math.sqrt(b.q)));
+        } else {
+          continue;
+        }
+        gainSum += b.gain * w;
+        wSum    += w;
+      }
+      return wSum > 1e-10 ? gainSum / wSum : 0;
+    };
     let points = [];
     for (let x = paddingLeft; x <= width + paddingRight; x += 3) {
       const f = xToFreq(x);
-      let totalGain = 0;
-      for (let i = 0; i < bands.length; i++) {
-        totalGain += getBiquadMagnitude(bands[i].type, bands[i].freq, bands[i].gain, bands[i].q, f);
-      }
-      points.push(`${x},${gainToY(totalGain)}`);
+      points.push(`${x},${gainToY(shapeGain(f))}`);
     }
     return `M ${points.join(" L ")}`;
   });
