@@ -166,8 +166,8 @@ function App() {
   const freqToX = (f) =>
     paddingLeft + (Math.log10(Math.max(MIN_FREQ, f) / MIN_FREQ) / Math.log10(MAX_FREQ / MIN_FREQ)) * chartWidth;
   const xToFreq = (x) => MIN_FREQ * Math.pow(MAX_FREQ / MIN_FREQ, (x - paddingLeft) / chartWidth);
-  const gainToY = (g) => plotHeight / 2 - (g / MAX_GAIN) * (plotHeight / 2);
-  const yToGain = (y) => ((plotHeight / 2 - y) / (plotHeight / 2)) * MAX_GAIN;
+  const gainToY = (g) => plotHeight / 2 - (g / 14) * (plotHeight / 2);
+  const yToGain = (y) => ((plotHeight / 2 - y) / (plotHeight / 2)) * 14;
 
   function handlePointerMove(e) {
     const drag = dragging();
@@ -182,7 +182,7 @@ function App() {
       setBands(drag.index, "q", Number.parseFloat(newQ.toFixed(2)));
     } else {
       setBands(drag.index, "freq", Math.round(xToFreq(x)));
-      setBands(drag.index, "gain", Number.parseFloat(yToGain(y).toFixed(1)));
+      setBands(drag.index, "gain", Number.parseFloat(Math.max(-MAX_GAIN, Math.min(MAX_GAIN, yToGain(y))).toFixed(1)));
     }
   }
 
@@ -597,24 +597,15 @@ function App() {
             })}
 
             {[-12, -6, 0, 6, 12].map((g) => {
-              let dominant = "middle";
-              if (g === 12) {
-                dominant = "hanging";
-              }
-              if (g === -12) {
-                dominant = "ideographic";
-              }
               return (
                 <g>
-                  <Show when={![-12, 12].includes(g)}>
-                    <line
-                      x1={paddingLeft}
-                      y1={gainToY(g)}
-                      x2={paddingLeft + chartWidth + paddingRight}
-                      y2={gainToY(g)}
-                    />
-                  </Show>
-                  <text x={paddingLeft - 15} y={gainToY(g) + 4} text-anchor="end" dominant-baseline={dominant}>
+                  <line
+                    x1={paddingLeft}
+                    y1={gainToY(g)}
+                    x2={paddingLeft + chartWidth + paddingRight}
+                    y2={gainToY(g)}
+                  />
+                  <text x={paddingLeft - 15} y={gainToY(g) + 4} text-anchor="end" dominant-baseline="middle">
                     {g}
                   </text>
                 </g>
