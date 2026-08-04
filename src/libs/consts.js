@@ -1,6 +1,10 @@
-export const SAMPLE_RATE = 44100;
-export const MIN_FREQ = 20;
-export const MAX_FREQ = 20000;
+// Sample rate used by the EQ curve visualizer. The original FiiO Control app
+// draws its curve at 48 kHz (FS_48000), so the visualizer matches it.
+export const SAMPLE_RATE = 48000;
+// Frequency range of the EQ curve visualizer, matching the original FiiO
+// Control app (n6e(128, 10, 24e3)) so the rendered shape coincides.
+export const MIN_FREQ = 10;
+export const MAX_FREQ = 24000;
 export const MIN_GAIN = -12;
 export const MAX_GAIN = 12;
 

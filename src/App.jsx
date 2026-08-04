@@ -187,45 +187,13 @@ function App() {
   }
 
   const eqPath = createMemo(() => {
-    // RBF interpolation: solves K·α=gains once, evaluates per pixel (exact through dots, correct type+Q)
-    const active = bands.filter(b => b.gain !== 0);
-    const n = active.length;
-    const shapeOf = (f, b) => {
-      const r = f / b.freq, lg = Math.log2(r);
-      if (b.type === "PK") { const bw = 1 / b.q; return Math.exp(-(lg*lg)/(2*bw*bw)); }
-      if (b.type === "LSC" || b.type === "LSQ") return 1 / (1 + Math.pow(r,   4 * Math.sqrt(b.q)));
-      if (b.type === "HSC" || b.type === "HSQ") return 1 / (1 + Math.pow(1/r, 4 * Math.sqrt(b.q)));
-      return 0;
-    };
-    let evalCurve;
-    if (n === 0) {
-      evalCurve = () => 0;
-    } else {
-      const A = active.map((bj, j) => [...active.map(bi => shapeOf(bj.freq, bi)), active[j].gain]);
-      for (let col = 0; col < n; col++) {
-        let maxRow = col;
-        for (let row = col + 1; row < n; row++)
-          if (Math.abs(A[row][col]) > Math.abs(A[maxRow][col])) maxRow = row;
-        [A[col], A[maxRow]] = [A[maxRow], A[col]];
-        if (Math.abs(A[col][col]) < 1e-12) continue;
-        for (let row = col + 1; row < n; row++) {
-          const fac = A[row][col] / A[col][col];
-          for (let j = col; j <= n; j++) A[row][j] -= fac * A[col][j];
-        }
-      }
-      const alpha = new Array(n).fill(0);
-      for (let i = n - 1; i >= 0; i--) {
-        if (Math.abs(A[i][i]) < 1e-12) continue;
-        alpha[i] = A[i][n];
-        for (let j = i + 1; j < n; j++) alpha[i] -= A[i][j] * alpha[j];
-        alpha[i] /= A[i][i];
-      }
-      evalCurve = (f) => active.reduce((s, b, k) => s + alpha[k] * shapeOf(f, b), 0);
-    }
+    // Real biquad magnitude response (RBJ), matching the original FiiO Control
+    // web app: total dB at f = sum of each band's biquad magnitude.
+    const curveDbAt = (f) => bands.reduce((s, b) => s + getBiquadMagnitude(b.type, b.freq, b.gain, b.q, f), 0);
     let points = [];
     for (let x = paddingLeft; x <= width + paddingRight; x += 3) {
       const f = xToFreq(x);
-      points.push(`${x},${gainToY(evalCurve(f))}`);
+      points.push(`${x},${gainToY(curveDbAt(f))}`);
     }
     return `M ${points.join(" L ")}`;
   });
